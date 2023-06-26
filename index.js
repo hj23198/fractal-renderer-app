@@ -14,7 +14,7 @@ class Render {
         /*
         renders recived requests and saves to assets/fractal_image.png
         */
-        var request = "./assets/fractal-renderer " + x + " " + y + " " + width + " " + height + " " + zoom + " " + numthreads + " " + repnum
+        let request = "./assets/fractal-renderer " + x + " " + y + " " + width + " " + height + " " + zoom + " " + numthreads + " " + repnum
         execSync(request)
         return "done"
     }
