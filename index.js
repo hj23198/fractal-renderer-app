@@ -4,6 +4,7 @@ const path = require('path')
 const fs = require('fs')
 const execSync = require('child_process').execSync;
 
+//globals
 bookmarks = ""
 
 
@@ -39,6 +40,7 @@ class Bookmark {
 
     static add(e, id, new_bookmark) {
         bookmarks["saved"][id] = new_bookmark
+        bookmarks["current_id"] = id
         Bookmark.save()
     
     }
@@ -49,6 +51,7 @@ class Bookmark {
     }
 
     static render(e, id) {
+        console.log("RENDER REQUESTED")
         let settings = bookmarks["saved"][id]
         Render.renderFrame(settings["x"], settings["y"], settings["width"], settings["height"], settings["zoom"], settings["numthreads"], settings["depth"])
     }
@@ -90,9 +93,9 @@ async function renderDisplay(event, x, y, width, height, zoom, numthreads, repnu
 
 app.whenReady().then(() => {
     
+    Bookmark.load()
     createWindow()
     connectIpc()
-    Bookmark.load()
 
   
 
@@ -106,3 +109,4 @@ app.whenReady().then(() => {
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') app.quit()
 })
+
