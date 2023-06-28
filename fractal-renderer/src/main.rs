@@ -13,39 +13,35 @@ fn main(){
     let numthreads:u8 = args[6].parse().unwrap();
     let rep_num:u32 = args[7].parse().unwrap();
 
-    let mut g:mainthread = mainthread{x:x, y:y, xsize:xsize, ysize:ysize, zoom:zoom, numthreads:numthreads, rep_num:rep_num};
-    g.generate();
-    print!("0")
+    generate(x, y, xsize, ysize, zoom, numthreads, rep_num);
+
 }
-#[derive(Copy, Clone)]
-struct mainthread{x:f64, y:f64, xsize:u32, ysize:u32, zoom:f64, numthreads:u8, rep_num:u32}
-impl mainthread {
-    fn generate(self){
+    fn generate(x:f64, y:f64, xsize:u32, ysize:u32, zoom:f64, numthreads:u8, rep_num:u32){
 
         let exe_path = std::env::current_exe().unwrap().parent().unwrap().join("grad.tiff");
         let sample_image = image::open(exe_path).unwrap().to_rgb8();
-        let mut image = image::DynamicImage::new_rgb8(self.xsize, self.ysize);
+        let mut image = image::DynamicImage::new_rgb8(xsize, ysize);
         let mut threads = vec![];
         let mut channels:Vec<mpsc::Receiver<(u32, u32, u32)>> = vec![];
-        let x_change:f64 = self.zoom/self.xsize as f64;
-        let y_change:f64 = self.zoom/self.ysize as f64;
+        let x_change:f64 = zoom/xsize as f64;
+        let y_change:f64 = zoom/ysize as f64;
         
         //set up the amount of columns we should assign to each individual thread
         let mut columns_per_thread:Vec<u32> = vec![];
         //if there is no remainder we can equally divide the columns amoung the threads
 
-        if self.numthreads == 0 {
+        if numthreads == 0 {
             panic!("No threads being used")
-        } else if self.xsize % self.numthreads as u32 == 0{
-            for _i in 0..self.numthreads{
-                columns_per_thread.push(self.xsize/self.numthreads as u32);
+        } else if xsize % numthreads as u32 == 0{
+            for _i in 0..numthreads{
+                columns_per_thread.push(xsize/numthreads as u32);
             }
             //if there is a remainder, set aside one thread to handle it and equally divide the new amout of columns amoung all other threads
         } else {
-            for _i in 0..self.numthreads{
-                columns_per_thread.push((self.xsize - (self.xsize % self.numthreads as u32-1)) / self.numthreads as u32-1);
+            for _i in 0..numthreads-1{
+                columns_per_thread.push((xsize - (xsize % numthreads as u32-1)) / numthreads as u32-1);
             }
-            columns_per_thread.push(self.xsize % self.numthreads as u32-1);
+            columns_per_thread.push(xsize % numthreads as u32-1);
         }
         
         let mut image_pointer_x:Vec<Vec<u32>> = vec![];
@@ -56,10 +52,10 @@ impl mainthread {
         let mut fractal_pointer_x:Vec<Vec<f64>> = vec![];
         let mut fractal_pointer_y:Vec<Vec<f64>> = vec![];
 
-        let mut fractal_pointer_x_counter:f64 = self.x - (x_change * self.xsize as f64/2.0);
-        let fractal_pointer_y_counter:f64 = self.y - (y_change * self.ysize as f64/2.0);
+        let mut fractal_pointer_x_counter:f64 = x - (x_change * xsize as f64/2.0);
+        let fractal_pointer_y_counter:f64 = y - (y_change * ysize as f64/2.0);
         //assign parameter vectors to threads 
-        for i in 0..self.numthreads{
+        for i in 0..numthreads{
             let mut image_pointer_to_push:Vec<u32> = vec![];
             let mut fractal_pointer_x_to_push:Vec<f64> = vec![];
             let mut fractal_pointer_y_to_push:Vec<f64> = vec![];
@@ -77,7 +73,7 @@ impl mainthread {
             image_pointer_x.push(image_pointer_to_push);
         }
         
-        for i in 0..self.numthreads{
+        for i in 0..numthreads{
             let (tx, rx) = mpsc::channel();
             let fractal_pointer_x = fractal_pointer_x[i as usize].clone();
             let fractal_pointer_y = fractal_pointer_y[i as usize].clone();
@@ -85,7 +81,7 @@ impl mainthread {
 
             channels.push(rx);
             threads.push(thread::spawn(move || {
-                thread_target(&fractal_pointer_x, &fractal_pointer_y, &image_pointer_x, &self.ysize, &y_change, &tx, self.rep_num);
+                thread_target(&fractal_pointer_x, &fractal_pointer_y, &image_pointer_x, &ysize, &y_change, &tx, rep_num);
             }))
         }
 
@@ -123,9 +119,8 @@ impl mainthread {
     //image = image.resize(1000, 1000, CatmullRom);
     image.save(exe_path);
 
-
-    }
 }
+
  
 
 fn thread_target(xpoint:&Vec<f64>, ypoint:&Vec<f64>, imagexpoint:&Vec<u32>, repetitions:&u32, ychange:&f64, tx:&Sender<(u32, u32, u32)>, rep_num:u32) {
