@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "build-renderer": "cd fractal-renderer && cargo build --release && mv target/release/fractal-renderer ../assets",
     "start": "electron-forge start",
     "package": "electron-forge package",
     "make": "electron-forge make"
