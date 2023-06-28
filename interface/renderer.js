@@ -27,6 +27,7 @@ class Bookmark {
         let option = document.createElement("input")
         option.type = "radio"
         option.id = bookmark_id
+        option.name = "bookmarks"
         select.appendChild(option)
 
         let label = document.createElement("label")
@@ -158,7 +159,6 @@ class EventHandle {
     }
 
     static addBookmarkPressed() {
-        //TODO 
         const x = document.getElementById("x").value
         const y = document.getElementById("y").value
         const width = document.getElementById("width").value
@@ -194,12 +194,7 @@ class EventHandle {
         focused_on_form = false
         console.log("form blurred")
     }
-
-
 }
-
-
-
 
 function updateImageDisplay() {
     //refresh image display to current render
