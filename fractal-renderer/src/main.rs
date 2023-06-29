@@ -1,5 +1,6 @@
 
 use image::{Rgb, GenericImage, Rgba, Pixel};
+use std::iter::Sum;
 use std::{io, thread};
 use std::sync::mpsc::{self, Sender};
 
@@ -16,6 +17,36 @@ fn main(){
     generate(x, y, xsize, ysize, zoom, numthreads, rep_num);
 
 }
+
+    fn assignAmountOfColumns(xsize:u32, numthreads:u8) -> Vec<u32> {
+        //returns a vector of the amount of columns each thread should handle
+        let mut output:Vec<u32> = vec![];
+
+        if numthreads == 0 {
+            panic!("No threads being used");
+        }
+
+        //add an equal starting amount of columns to each thread
+        let starting_amount:u32 = (xsize - (xsize % numthreads as u32)) / numthreads as u32;
+
+        for _ in 0..numthreads{
+            output.push(starting_amount);
+        }
+
+        //then equally divide out the remainder
+        let remainder:u32 = xsize % numthreads as u32;
+
+        for i in 0..remainder {
+            output[i as usize] += 1;
+        }
+
+        return output;
+    }
+        
+
+
+
+
     fn generate(x:f64, y:f64, xsize:u32, ysize:u32, zoom:f64, numthreads:u8, rep_num:u32){
 
         let exe_path = std::env::current_exe().unwrap().parent().unwrap().join("grad.tiff");
@@ -27,23 +58,8 @@ fn main(){
         let y_change:f64 = zoom/ysize as f64;
         
         //set up the amount of columns we should assign to each individual thread
-        let mut columns_per_thread:Vec<u32> = vec![];
-        //if there is no remainder we can equally divide the columns amoung the threads
+        let columns_per_thread:Vec<u32> = assignAmountOfColumns(xsize, numthreads);
 
-        if numthreads == 0 {
-            panic!("No threads being used")
-        } else if xsize % numthreads as u32 == 0{
-            for _i in 0..numthreads{
-                columns_per_thread.push(xsize/numthreads as u32);
-            }
-            //if there is a remainder, set aside one thread to handle it and equally divide the new amout of columns amoung all other threads
-        } else {
-            for _i in 0..numthreads-1{
-                columns_per_thread.push((xsize - (xsize % numthreads as u32-1)) / numthreads as u32-1);
-            }
-            columns_per_thread.push(xsize % numthreads as u32-1);
-        }
-        
         let mut image_pointer_x:Vec<Vec<u32>> = vec![];
         //image_pointer_y is just equal to 0 for all threads 
         let mut image_pointer_x_counter = 0;
@@ -55,7 +71,7 @@ fn main(){
         let mut fractal_pointer_x_counter:f64 = x - (x_change * xsize as f64/2.0);
         let fractal_pointer_y_counter:f64 = y - (y_change * ysize as f64/2.0);
         //assign parameter vectors to threads 
-        for i in 0..numthreads{
+        for i in 0..numthreads {
             let mut image_pointer_to_push:Vec<u32> = vec![];
             let mut fractal_pointer_x_to_push:Vec<f64> = vec![];
             let mut fractal_pointer_y_to_push:Vec<f64> = vec![];
