@@ -55,7 +55,6 @@ fn main(){
         let mut threads = vec![];
         let mut channels:Vec<mpsc::Receiver<(u32, u32, u32)>> = vec![];
         let x_change:f64 = zoom/xsize as f64;
-        let y_change:f64 = zoom/xsize as f64; 
         
         //set up the amount of columns we should assign to each individual thread
         let columns_per_thread:Vec<u32> = assignAmountOfColumns(xsize, numthreads);
@@ -69,7 +68,7 @@ fn main(){
         let mut fractal_pointer_y:Vec<Vec<f64>> = vec![];
 
         let mut fractal_pointer_x_counter:f64 = x - (x_change * xsize as f64/2.0);
-        let fractal_pointer_y_counter:f64 = y - (y_change * ysize as f64/2.0);
+        let fractal_pointer_y_counter:f64 = y - (x_change * ysize as f64/2.0);
         //assign parameter vectors to threads 
         for i in 0..numthreads {
             let mut image_pointer_to_push:Vec<u32> = vec![];
@@ -97,7 +96,7 @@ fn main(){
 
             channels.push(rx);
             threads.push(thread::spawn(move || {
-                thread_target(&fractal_pointer_x, &fractal_pointer_y, &image_pointer_x, &ysize, &y_change, &tx, rep_num);
+                thread_target(&fractal_pointer_x, &fractal_pointer_y, &image_pointer_x, &ysize, &x_change, &tx, rep_num);
             }))
         }
 
@@ -139,7 +138,7 @@ fn main(){
 
  
 
-fn thread_target(xpoint:&Vec<f64>, ypoint:&Vec<f64>, imagexpoint:&Vec<u32>, repetitions:&u32, ychange:&f64, tx:&Sender<(u32, u32, u32)>, rep_num:u32) {
+fn thread_target(xpoint:&Vec<f64>, ypoint:&Vec<f64>, imagexpoint:&Vec<u32>, repetitions:&u32, xchange:&f64, tx:&Sender<(u32, u32, u32)>, rep_num:u32) {
 
     for i in 0..xpoint.len(){
 
@@ -156,7 +155,7 @@ fn thread_target(xpoint:&Vec<f64>, ypoint:&Vec<f64>, imagexpoint:&Vec<u32>, repe
 
             tx.send((imx as u32, r as u32, pix as u32));
             
-            y += ychange;
+            y += xchange;
         }
     }
     //this signals to the main thread that all the data has been sent 
