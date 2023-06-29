@@ -55,7 +55,7 @@ fn main(){
         let mut threads = vec![];
         let mut channels:Vec<mpsc::Receiver<(u32, u32, u32)>> = vec![];
         let x_change:f64 = zoom/xsize as f64;
-        let y_change:f64 = zoom/ysize as f64;
+        let y_change:f64 = zoom/xsize as f64; 
         
         //set up the amount of columns we should assign to each individual thread
         let columns_per_thread:Vec<u32> = assignAmountOfColumns(xsize, numthreads);
@@ -195,7 +195,7 @@ fn test_pixel(x:f64, y:f64, rep:u32) -> u32 {
         i.square();
         i.add(inum { r: x, i: y });
 
-        if (i.r*i.r)+(i.i*i.i) > 2.0 {
+        if i.r > 2.0 || i.i > 2.0 {
             return (item / 2)% 299;
         }
     }
