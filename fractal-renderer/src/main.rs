@@ -65,33 +65,32 @@ fn main(){
 
         //starting point on fractal for threads 
         let mut fractal_pointer_x:Vec<Vec<f64>> = vec![];
-        let mut fractal_pointer_y:Vec<Vec<f64>> = vec![];
 
+        //point on complex plane that maps to (0, 0) on image
         let mut fractal_pointer_x_counter:f64 = x - (x_change * xsize as f64/2.0);
         let fractal_pointer_y_counter:f64 = y - (x_change * ysize as f64/2.0);
+
+
         //assign parameter vectors to threads 
         for i in 0..numthreads {
             let mut image_pointer_to_push:Vec<u32> = vec![];
             let mut fractal_pointer_x_to_push:Vec<f64> = vec![];
-            let mut fractal_pointer_y_to_push:Vec<f64> = vec![];
 
             for _i2 in 0..columns_per_thread[i as usize]{
 
                 image_pointer_to_push.push(image_pointer_x_counter);
                 fractal_pointer_x_to_push.push(fractal_pointer_x_counter);
-                fractal_pointer_y_to_push.push(fractal_pointer_y_counter);
                 image_pointer_x_counter += 1;
                 fractal_pointer_x_counter += x_change;
             }
             fractal_pointer_x.push(fractal_pointer_x_to_push);
-            fractal_pointer_y.push(fractal_pointer_y_to_push);
             image_pointer_x.push(image_pointer_to_push);
         }
         
         for i in 0..numthreads{
             let (tx, rx) = mpsc::channel();
             let fractal_pointer_x = fractal_pointer_x[i as usize].clone();
-            let fractal_pointer_y = fractal_pointer_y[i as usize].clone();
+            let fractal_pointer_y = fractal_pointer_y_counter.clone();
             let image_pointer_x = image_pointer_x[i as usize].clone();
 
             channels.push(rx);
@@ -138,11 +137,11 @@ fn main(){
 
  
 
-fn thread_target(xpoint:&Vec<f64>, ypoint:&Vec<f64>, imagexpoint:&Vec<u32>, repetitions:&u32, xchange:&f64, tx:&Sender<(u32, u32, u32)>, rep_num:u32) {
+fn thread_target(xpoint:&Vec<f64>, ypoint:&f64, imagexpoint:&Vec<u32>, repetitions:&u32, xchange:&f64, tx:&Sender<(u32, u32, u32)>, rep_num:u32) {
 
     for i in 0..xpoint.len(){
 
-        let mut y:f64 = ypoint[i as usize];
+        let mut y:f64 = ypoint.clone();
         let x:f64 = xpoint[i as usize];
         let imx:u32 = imagexpoint[i as usize];
 
