@@ -1,8 +1,6 @@
-
-use image::{Rgb, GenericImage, Rgba, Pixel};
-use std::iter::Sum;
-use std::{io, thread};
-use std::sync::mpsc::{self, Sender};
+use image::{GenericImage, Rgba, Pixel};
+use std::thread;
+use std::sync::{Mutex, Arc};
 
 fn main(){
     let args:Vec<String> = std::env::args().collect();
@@ -12,153 +10,128 @@ fn main(){
     let ysize:u32 = args[4].parse().unwrap();
     let zoom:f64 = args[5].parse().unwrap();
     let numthreads:u8 = args[6].parse().unwrap();
-    let rep_num:u32 = args[7].parse().unwrap();
+    let depth:u32 = args[7].parse().unwrap();
 
-    generate(x, y, xsize, ysize, zoom, numthreads, rep_num);
+    generate(x, y, xsize, ysize, zoom, numthreads, depth);
 
 }
 
-    fn assignAmountOfColumns(xsize:u32, numthreads:u8) -> Vec<u32> {
-        //returns a vector of the amount of columns each thread should handle
-        let mut output:Vec<u32> = vec![];
+fn generate(x:f64, y:f64, xsize:u32, ysize:u32, zoom:f64, numthreads:u8, depth:u32){
 
-        if numthreads == 0 {
-            panic!("No threads being used");
-        }
+    let searched: Arc<Mutex<Vec<Vec<bool>>>> = Arc::new(Mutex::new(vec![vec![false; xsize as usize]; ysize as usize]));
+    let repetition_values: Arc<Mutex<Vec<Vec<u32>>>> = Arc::new(Mutex::new(vec![vec![0; xsize as usize]; ysize as usize]));
 
-        //add an equal starting amount of columns to each thread
-        let starting_amount:u32 = (xsize - (xsize % numthreads as u32)) / numthreads as u32;
+    let change: f64 = zoom / ysize as f64;
+    let x_corner: f64 = x - (change * xsize as f64 / 2.0);
+    let y_corner: f64 = y - (change * ysize as f64/ 2.0);
 
-        for _ in 0..numthreads{
-            output.push(starting_amount);
-        }
+    let next_to_value: [i64; 3] = [-1, 0, 1];
 
-        //then equally divide out the remainder
-        let remainder:u32 = xsize % numthreads as u32;
+    let mut temporary_stack: Vec<[u32; 2]> = vec![[0, 0]];
 
-        for i in 0..remainder {
-            output[i as usize] += 1;
-        }
-
-        return output;
+    for i in 0..xsize {
+        temporary_stack.push([i, 0]);
+        temporary_stack.push([i, xsize-1])
     }
-        
 
+    for i in 1..ysize-1 {
+        temporary_stack.push([0, i]);
+        temporary_stack.push([xsize-1, i])
+    }
 
+    let stack: Arc<Mutex<Vec<[u32; 2]>>> = Arc::new(Mutex::new(temporary_stack));
 
+    let mut threads = vec![];
 
-    fn generate(x:f64, y:f64, xsize:u32, ysize:u32, zoom:f64, numthreads:u8, rep_num:u32){
+    for _ in 0..numthreads {
+        let searched = Arc::clone(&searched);
+        let repetition_values = Arc::clone(&repetition_values);
+        let stack = Arc::clone(&stack);
 
-        let exe_path = std::env::current_exe().unwrap().parent().unwrap().join("grad.tiff");
-        let sample_image = image::open(exe_path).unwrap().to_rgb8();
-        let mut image = image::DynamicImage::new_rgb8(xsize, ysize);
-        let mut threads = vec![];
-        let mut channels:Vec<mpsc::Receiver<(u32, u32, u32)>> = vec![];
-        let x_change:f64 = zoom/xsize as f64;
-        
-        //set up the amount of columns we should assign to each individual thread
-        let columns_per_thread:Vec<u32> = assignAmountOfColumns(xsize, numthreads);
-
-        let mut image_pointer_x:Vec<Vec<u32>> = vec![];
-        //image_pointer_y is just equal to 0 for all threads 
-        let mut image_pointer_x_counter = 0;
-
-        //starting point on fractal for threads 
-        let mut fractal_pointer_x:Vec<Vec<f64>> = vec![];
-
-        //point on complex plane that maps to (0, 0) on image
-        let mut fractal_pointer_x_counter:f64 = x - (x_change * xsize as f64/2.0);
-        let fractal_pointer_y_counter:f64 = y - (x_change * ysize as f64/2.0);
-
-
-        //assign parameter vectors to threads 
-        for i in 0..numthreads {
-            let mut image_pointer_to_push:Vec<u32> = vec![];
-            let mut fractal_pointer_x_to_push:Vec<f64> = vec![];
-
-            for _i2 in 0..columns_per_thread[i as usize]{
-
-                image_pointer_to_push.push(image_pointer_x_counter);
-                fractal_pointer_x_to_push.push(fractal_pointer_x_counter);
-                image_pointer_x_counter += 1;
-                fractal_pointer_x_counter += x_change;
-            }
-            fractal_pointer_x.push(fractal_pointer_x_to_push);
-            image_pointer_x.push(image_pointer_to_push);
-        }
-        
-        for i in 0..numthreads{
-            let (tx, rx) = mpsc::channel();
-            let fractal_pointer_x = fractal_pointer_x[i as usize].clone();
-            let fractal_pointer_y = fractal_pointer_y_counter.clone();
-            let image_pointer_x = image_pointer_x[i as usize].clone();
-
-            channels.push(rx);
-            threads.push(thread::spawn(move || {
-                thread_target(&fractal_pointer_x, &fractal_pointer_y, &image_pointer_x, &ysize, &x_change, &tx, rep_num);
-            }))
-        }
-
-
-    
-        loop{
-
-            if channels.len() == 0{
-                break;
-            }
-            for i in 0..channels.len(){
-                let (x, y, p) = channels[i as usize].recv().unwrap();
-
-                if x == 0 && y == 0 && p == 0 {
-                    //handle thread exit 
-                    threads.remove(i as usize);
-                    channels.remove(i as usize);
+        threads.push(thread::spawn(move || {
+            loop {
+                let mut stack_pointer = stack.lock().unwrap();
+                if stack_pointer.len() == 1 {
+                    drop(stack_pointer);
                     break;
                 }
-                if p == 299{
 
-                    image.put_pixel(x, y, Rgba([0, 0, 0, 0]));
-                } else {
-                image.put_pixel(x, y, sample_image.get_pixel(p as u32, 0).to_rgba());
+                let coords: [u32; 2] = stack_pointer.pop().unwrap();
+                drop(stack_pointer);
+                
+                let image_x: i64 = coords[0] as i64;
+                let image_y: i64 = coords[1] as i64;
+
+
+                let searched_areas = searched.lock().unwrap();
+                if searched_areas[image_x as usize][image_y as usize] {
+                    drop(searched_areas);
+                    continue;
                 }
-                    
-        
+                drop(searched_areas);
 
-            }
-        }
+                let r_value: f64 = x_corner + (image_x as f64 * change);
+                let i_value: f64 = y_corner + (image_y as f64 * change);
 
+                let repetition_value: u32 = test_pixel(r_value, i_value, depth);
+
+                let mut repetition_pointer = repetition_values.lock().unwrap();
+                repetition_pointer[image_x as usize][image_y as usize] = repetition_value;
+                drop(repetition_pointer);
+
+                let mut searched_areas = searched.lock().unwrap();
+                searched_areas[image_x as usize][image_y as usize] = true;
+                
+                if repetition_value == 0 {
+                    drop(searched_areas);
+                    continue;
+                }
+
+                let mut stack_pointer = stack.lock().unwrap();
+
+                for xmod in next_to_value.iter() {
+                    for ymod in next_to_value.iter() {
     
+    
+                        if 0 <= image_x + xmod && image_x + xmod < xsize as i64 && 0 <= image_y + ymod && image_y+ymod < ysize as i64 {
+                            if searched_areas[(image_x+*xmod) as usize][(image_y+ymod) as usize] == false {
+                                stack_pointer.push([(image_x + *xmod) as u32, (image_y+ *ymod) as u32])
+                            }
+                        }
+                    }
+                }
+                drop(searched_areas);
+                drop(stack_pointer);
+            }
+        }));
+    }
 
-    let exe_path = std::env::current_exe().unwrap().parent().unwrap().join("fractal_image.png");
-    //image = image.resize(1000, 1000, CatmullRom);
-    image.save(exe_path);
+    for thread in threads {
+        thread.join();
+    }
 
-}
 
- 
 
-fn thread_target(xpoint:&Vec<f64>, ypoint:&f64, imagexpoint:&Vec<u32>, repetitions:&u32, xchange:&f64, tx:&Sender<(u32, u32, u32)>, rep_num:u32) {
+    let exe_path = std::env::current_exe().unwrap().parent().unwrap().join("grad.tiff");
+    let sample_image = image::open(exe_path).unwrap().to_rgb8();
+    let mut image = image::DynamicImage::new_rgb8(xsize as u32, ysize as u32);
+    let repetition_values_pointer = repetition_values.lock().unwrap();
 
-    for i in 0..xpoint.len(){
-
-        let mut y:f64 = ypoint.clone();
-        let x:f64 = xpoint[i as usize];
-        let imx:u32 = imagexpoint[i as usize];
-
-        for r in 0..*repetitions{
-
-            let mut pix:u32 = test_pixel(x, y, rep_num);
-            if pix == 0{
-                pix = 1;
+    for x_iter in 0..xsize {
+        for y_iter in 0..ysize {
+            let value = repetition_values_pointer[x_iter as usize][y_iter as usize];
+            if value == 0 {
+                image.put_pixel(x_iter as u32, y_iter as u32, Rgba([0, 0, 0, 0]))
+            } else {
+                image.put_pixel(x_iter as u32, y_iter as u32, sample_image.get_pixel(value as u32 % 299, 0).to_rgba())
             }
 
-            tx.send((imx as u32, r as u32, pix as u32));
-            
-            y += xchange;
         }
     }
-    //this signals to the main thread that all the data has been sent 
-    tx.send((0, 0, 0));
+
+    let exe_path = std::env::current_exe().unwrap().parent().unwrap().join("fractal_image.png");
+    image.save(exe_path);
+
 }
 
 //struct for working with complex numbers
@@ -194,10 +167,10 @@ fn test_pixel(x:f64, y:f64, rep:u32) -> u32 {
         i.add(inum { r: x, i: y });
 
         if i.r > 2.0 || i.i > 2.0 {
-            return (item / 2)% 299;
+            return item
         }
     }
-    return 299;
+    return 0
 }
 
 
