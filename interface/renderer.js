@@ -235,7 +235,7 @@ function packSettings() {
             "point1":[pixel_1_r, pixel_1_g, pixel_1_b],
             "point2":[pixel_2_r, pixel_2_g, pixel_2_b],
             "set_color":[pixel_3_r, pixel_3_g, pixel_3_b],
-            "repetitions":3,
+            "repetitions":grad_rep,
             "base":2
         }
     

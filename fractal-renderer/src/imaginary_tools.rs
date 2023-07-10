@@ -3,8 +3,8 @@ use std::sync::{Mutex, Arc};
 
 pub fn render(x:f64, y:f64, xsize:u32, ysize:u32, zoom:f64, numthreads:u8, depth:u32) -> Vec<Vec<u32>> {
 
-    let searched: Arc<Mutex<Vec<Vec<bool>>>> = Arc::new(Mutex::new(vec![vec![false; xsize as usize]; ysize as usize]));
-    let repetition_values: Arc<Mutex<Vec<Vec<u32>>>> = Arc::new(Mutex::new(vec![vec![0; xsize as usize]; ysize as usize]));
+    let searched: Arc<Mutex<Vec<Vec<bool>>>> = Arc::new(Mutex::new(vec![vec![false; ysize as usize]; xsize as usize]));
+    let repetition_values: Arc<Mutex<Vec<Vec<u32>>>> = Arc::new(Mutex::new(vec![vec![0; ysize as usize]; xsize as usize]));
 
     let change: f64 = zoom / ysize as f64;
     let x_corner: f64 = x - (change * xsize as f64 / 2.0);
