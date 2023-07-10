@@ -208,6 +208,20 @@ function packSettings() {
     const threads = Number(document.getElementById("threads").value)
     const rep = Number(document.getElementById("rep").value)
 
+    const pixel_1_r = Number(document.getElementById("pixel_1_r").value)
+    const pixel_1_g = Number(document.getElementById("pixel_1_g").value)
+    const pixel_1_b = Number(document.getElementById("pixel_1_b").value)
+
+    const pixel_2_r = Number(document.getElementById("pixel_2_r").value)
+    const pixel_2_g = Number(document.getElementById("pixel_2_g").value)
+    const pixel_2_b = Number(document.getElementById("pixel_2_b").value)
+
+    const pixel_3_r = Number(document.getElementById("pixel_3_r").value)
+    const pixel_3_g = Number(document.getElementById("pixel_3_g").value)
+    const pixel_3_b = Number(document.getElementById("pixel_3_b").value)
+
+    const grad_rep = Number(document.getElementById("grad_rep").value)
+
     var json = {
         "x":x,
         "y":y,
@@ -218,9 +232,9 @@ function packSettings() {
         "depth":rep,
         "color_method":"log_grad",
         "color_params":{
-            "point1":[0, 0, 255],
-            "point2":[0, 255, 0],
-            "set_color":[0, 0, 0],
+            "point1":[pixel_1_r, pixel_1_g, pixel_1_b],
+            "point2":[pixel_2_r, pixel_2_g, pixel_2_b],
+            "set_color":[pixel_3_r, pixel_3_g, pixel_3_b],
             "repetitions":3,
             "base":2
         }

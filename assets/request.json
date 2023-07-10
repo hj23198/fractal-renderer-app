@@ -1,1 +1,1 @@
-{"x":-0.25,"y":-0.75,"xsize":200,"ysize":200,"zoom":0.25,"numthreads":8,"depth":200,"color_method":"log_grad","color_params":{"point1":[0,0,255],"point2":[0,255,0],"set_color":[0,0,0],"repetitions":3,"base":2},"name":"kj"}
+{"x":-0.125,"y":-0.0625,"xsize":200,"ysize":200,"zoom":4,"numthreads":8,"depth":200,"color_method":"log_grad","color_params":{"point1":[40,255,0],"point2":[0,0,255],"set_color":[0,0,0],"repetitions":3,"base":2}}
