@@ -159,13 +159,8 @@ class EventHandle {
     }
 
     static addBookmarkPressed() {
-        const x = document.getElementById("x").value
-        const y = document.getElementById("y").value
-        const width = document.getElementById("width").value
-        const height = document.getElementById("height").value
-        const zoom = document.getElementById("zoom").value
-        const threads = document.getElementById("threads").value
-        const rep = document.getElementById("rep").value
+        //TODO restructure json
+        let json = packSettings()
 
         let nameInput = document.getElementById("bookmark-name")
         let name = nameInput.value
@@ -173,9 +168,9 @@ class EventHandle {
         let next_id = bookmarks["current_id"] + 1
         bookmarks["current_id"] = next_id
 
-        let new_bookmark = {"x":x, "y":y, "width":width, "height":height, "zoom":zoom, "numthreads":threads, "depth":rep, "name":name}
+        json["name"] = name
 
-        Bookmark.add(next_id, new_bookmark)
+        Bookmark.add(next_id, json)
 
     }
 
@@ -204,19 +199,40 @@ function updateImageDisplay() {
 }
 
 function packSettings() {
-    const x = document.getElementById("x").value
-    const y = document.getElementById("y").value
-    const width = document.getElementById("width").value
-    const height = document.getElementById("height").value
-    const zoom = document.getElementById("zoom").value
-    const threads = document.getElementById("threads").value
-    const rep = document.getElementById("rep").value
-    return [x, y, width, height, zoom, threads, rep]
+    //TODO pack into json format
+    const x = Number(document.getElementById("x").value)
+    const y = Number(document.getElementById("y").value)
+    const width = Number(document.getElementById("width").value)
+    const height = Number(document.getElementById("height").value)
+    const zoom = Number(document.getElementById("zoom").value)
+    const threads = Number(document.getElementById("threads").value)
+    const rep = Number(document.getElementById("rep").value)
+
+    var json = {
+        "x":x,
+        "y":y,
+        "xsize":width,
+        "ysize":height,
+        "zoom":zoom,
+        "numthreads":threads,
+        "depth":rep,
+        "color_method":"log_grad",
+        "color_params":{
+            "point1":[0, 0, 255],
+            "point2":[0, 255, 0],
+            "set_color":[0, 0, 0],
+            "repetitions":3,
+            "base":2
+        }
+    
+    }
+
+    return json
 }
 
 async function renderImage() {
-    var settings = packSettings()
-    const result = await window.electronAPI.ipcRenderDisplay(...settings)
+    var json = packSettings()
+    const result = await window.electronAPI.ipcRenderDisplay(json)
 }
 
 Bookmark.buildBookmarkSelect()
@@ -224,11 +240,3 @@ EventHandle.build()
 
 
 
-//debugging tools
-
-const reset = document.getElementById("reset")
-reset.addEventListener('click', async () => {
-    await Bookmark.buildBookmarkSelect()
-    Bookmark.add(0, {"x":0, "y":0, "width":100, "height":100, "zoom":1, "threads":1, "rep":1, "name":"name"})
-
-})

@@ -11,12 +11,12 @@ bookmarks = ""
 
 class Render {
 
-    static renderFrame(x, y, width, height, zoom, numthreads, repnum) {
+    static renderFrame(json) {
         /*
         renders recived requests and saves to assets/fractal_image.png
         */
-        let request = "./assets/fractal-renderer " + x + " " + y + " " + width + " " + height + " " + zoom + " " + numthreads + " " + repnum
-        execSync(request)
+        fs.writeFileSync("assets/request.json", JSON.stringify(json))
+        execSync("./assets/fractal-renderer")
         return "done"
     }
 }
@@ -53,7 +53,7 @@ class Bookmark {
     static render(e, id) {
         console.log("RENDER REQUESTED")
         let settings = bookmarks["saved"][id]
-        Render.renderFrame(settings["x"], settings["y"], settings["width"], settings["height"], settings["zoom"], settings["numthreads"], settings["depth"])
+        Render.renderFrame(settings)
     }
 
 }
@@ -78,11 +78,11 @@ function createWindow () {
     mainWindow.loadFile('interface/index.html')
 }
 
-async function renderDisplay(event, x, y, width, height, zoom, numthreads, repnum) {
+async function renderDisplay(event, json) {
     /*
     renders recived requests and saves to assets/fractal_image.png
     */
-   await Render.renderFrame(x, y, width, height, zoom, numthreads, repnum)
+   await Render.renderFrame(json)
    return "done"
 
 }
