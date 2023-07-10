@@ -221,6 +221,7 @@ function packSettings() {
     const pixel_3_b = Number(document.getElementById("pixel_3_b").value)
 
     const grad_rep = Number(document.getElementById("grad_rep").value)
+    const base = Number(document.getElementById("base").value)
 
     var json = {
         "x":x,
@@ -236,7 +237,7 @@ function packSettings() {
             "point2":[pixel_2_r, pixel_2_g, pixel_2_b],
             "set_color":[pixel_3_r, pixel_3_g, pixel_3_b],
             "repetitions":grad_rep,
-            "base":2
+            "base":base
         }
     
     }
