@@ -102,9 +102,22 @@ class EventHandle {
         const renderBookmarkButton = document.getElementById("render-bookmark")
         renderBookmarkButton.addEventListener('click', EventHandle.renderBookmarkPressed)
 
-        const form = document.getElementById("bookmark-name")
-        form.addEventListener('focus', EventHandle.formFocus)
-        form.addEventListener('blur', EventHandle.formBlur)
+        const inputs = document.getElementById("inputs")
+        for (let i in inputs.children) {
+            let input = inputs.children[i]
+
+            if (input.tagName == "INPUT") {
+                input.addEventListener('focus', EventHandle.formFocus)
+                input.addEventListener('blur', EventHandle.formBlur)
+            }
+        }
+
+        const bookmarkInput = document.getElementById("bookmark-name")
+        bookmarkInput.addEventListener('focus', EventHandle.formFocus)
+        bookmarkInput.addEventListener('blur', EventHandle.formBlur)
+
+        const saveButton = document.getElementById("save")
+        saveButton.addEventListener('click', EventHandle.savePressed)
     }
 
 
@@ -178,6 +191,10 @@ class EventHandle {
         let id = Bookmark.getRadioValue()
         Bookmark.render(id)
         updateImageDisplay()
+    }
+
+    static savePressed() {
+        window.electronAPI.ipcRenderSave()
     }
 
     static formFocus() {
