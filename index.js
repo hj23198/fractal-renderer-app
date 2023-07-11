@@ -13,33 +13,33 @@ class Render {
 
     static renderFrame(json) {
         /*
-        renders recived requests and saves to assets/fractal_image.png
+        renders recived requests and saves to resources/fractal_image.png
         */
-        fs.writeFileSync("assets/request.json", JSON.stringify(json))
-        execSync("./assets/fractal-renderer")
+        fs.writeFileSync(path.join(__dirname, "resources", "request.json"), JSON.stringify(json))
+        execSync(path.join(__dirname, "resources", "fractal-renderer"))
         return "done"
     }
 
     static saveImage() {
-        let path = dialog.showSaveDialogSync({
+        let fpath = dialog.showSaveDialogSync({
             title: "Save Image",
         })
 
-        fs.copyFileSync("assets/fractal_image.png", path + ".png")
+        fs.copyFileSync(path.join(__dirname, "resources", "fractal_image.png"), fpath + ".png")
     }
 }
 
 class Bookmark {
 
     static load() {
-        bookmarks = fs.readFileSync("config/bookmarks.json")
+        bookmarks = fs.readFileSync(path.join(__dirname, "/resources/bookmarks.json"))
         bookmarks = JSON.parse(bookmarks)
         return bookmarks
     }
 
     
     static save() {
-        fs.writeFileSync("config/bookmarks.json", JSON.stringify(bookmarks))
+        fs.writeFileSync(path.join(__dirname, "resources/bookmarks.json"), JSON.stringify(bookmarks))
     }
     
     static get(e) {
@@ -59,7 +59,6 @@ class Bookmark {
     }
 
     static render(e, id) {
-        console.log("RENDER REQUESTED")
         let settings = bookmarks["saved"][id]
         Render.renderFrame(settings)
     }
@@ -86,12 +85,12 @@ function createWindow () {
         height: 600
     })
 
-    mainWindow.loadFile('interface/index.html')
+    mainWindow.loadFile(path.join(__dirname, 'interface/index.html'))
 }
 
 async function renderDisplay(event, json) {
     /*
-    renders recived requests and saves to assets/fractal_image.png
+    renders recived requests and saves to resources/fractal_image.png
     */
    await Render.renderFrame(json)
    return "done"

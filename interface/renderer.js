@@ -212,7 +212,7 @@ function updateImageDisplay() {
     //refresh image display to current render
     var time = new Date().getTime()
     var image_element = document.getElementById("display")
-    image_element.src = "../assets/fractal_image.png?t=" + time
+    image_element.src = "../resources/fractal_image.png?t=" + time
 }
 
 function packSettings() {
