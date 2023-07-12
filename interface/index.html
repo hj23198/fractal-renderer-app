@@ -1,93 +1,86 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'">
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'"
+    />
     <title>Mandelbrot Renderer v1</title>
   </head>
   <body>
-    
     <div id="inputs">
-      X: <input id="x" type="number" value="0"/>
-      <br>
-      Y: <input id="y" type="number" value="0"/>
-      <br>
-      Width: <input id="width" type="number" value="200"/>
-      <br>
-      Height: <input id="height" type="number" value = "200"/>
-      <br>
-      Zoom: <input id="zoom" type="number" value="1"/>
-      <br>
-      Threads: <input id="threads" type="number" value="8"/>
-      <br>
-      Repetition Threshold: <input id="rep" type="number" value="200"/>
-      <br>
-      Pixel 1 
-      <input id="pixel_1_r" type="number" value = "255"/>
-      <input id="pixel_1_g" type="number" value = "0"/>
-      <input id="pixel_1_b" type="number" value = "0"/>
-      <br>
+      X: <input id="x" type="number" value="0" />
+      <br />
+      Y: <input id="y" type="number" value="0" />
+      <br />
+      Width: <input id="width" type="number" value="200" />
+      <br />
+      Height: <input id="height" type="number" value="200" />
+      <br />
+      Zoom: <input id="zoom" type="number" value="1" />
+      <br />
+      Threads: <input id="threads" type="number" value="8" />
+      <br />
+      Repetition Threshold: <input id="rep" type="number" value="200" />
+      <br />
+      Pixel 1
+      <input id="pixel_1_r" type="number" value="255" />
+      <input id="pixel_1_g" type="number" value="0" />
+      <input id="pixel_1_b" type="number" value="0" />
+      <br />
       Pixel 2
-      <input id="pixel_2_r" type="number" value = "0"/>
-      <input id="pixel_2_g" type="number" value = "0"/>
-      <input id="pixel_2_b" type="number" value = "255"/>
-      <br>
+      <input id="pixel_2_r" type="number" value="0" />
+      <input id="pixel_2_g" type="number" value="0" />
+      <input id="pixel_2_b" type="number" value="255" />
+      <br />
       Set color
-      <input id="pixel_3_r" type="number" value = "0"/>
-      <input id="pixel_3_g" type="number" value = "0"/>
-      <input id="pixel_3_b" type="number" value = "0"/>
-      <br>
+      <input id="pixel_3_r" type="number" value="0" />
+      <input id="pixel_3_g" type="number" value="0" />
+      <input id="pixel_3_b" type="number" value="0" />
+      <br />
       Gradient Repetitions
-      <input id="grad_rep" type="number" value="3"/>
-      <br>
+      <input id="grad_rep" type="number" value="3" />
+      <br />
       Log Base
-      <input id="base" type="number" value="2"/>
-      <br>
-
+      <input id="base" type="number" value="2" />
+      <br />
 
       <button id="btn" type="button">Set</button>
       <button id="save" type="button">Save</button>
-
-
     </div>
 
-    <div id="bookmarks">
-    </div>
-
+    <div id="bookmarks"></div>
 
     <div id="bookmark-buttons">
       <button id="render-bookmark" type="button">Render Bookmark</button>
       <button id="remove-bookmark" type="button">Remove Bookmark</button>
       <button id="add-bookmark" type="button">Add Bookmark</button>
-      <input id="bookmark-name" type="text" autocomplete="off">
+      <input id="bookmark-name" type="text" autocomplete="off" />
       <button id="reset" type="button">Testing reset</button>
     </div>
 
     <div id="video">
       Starting point bookmark name
-      <input id="video-name1" type="text">
-      <br>
+      <input id="video-name1" type="text" />
+      <br />
       Ending point bookmark name
-      <input id="video-name2" type="text">
-      <br>
+      <input id="video-name2" type="text" />
+      <br />
       Frames
-      <input id="video-frames" type="number">
-      <br>
+      <input id="video-frames" type="number" />
+      <br />
       Zoom modif
-      <input id="video-zoom" type="number">
-      <br>
+      <input id="video-zoom" type="number" />
+      <br />
       <button id="video-render" type="button">Render Video</button>
-
-      
     </div>
-
 
     <div id="image">
-      <img src="../resources/fractal_image.png" id="display">
+      <img src="../resources/fractal_image.png" id="display" />
     </div>
-    
-    
+
     <script src="renderer.js"></script>
   </body>
-  </html>
+</html>
