@@ -3,5 +3,4 @@ node_modules
 out
 .DS_Store
 fractal-renderer/target
-assets/fractal-renderer
-assets/fractal_image.png
+video_out/**

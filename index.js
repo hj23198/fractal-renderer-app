@@ -1,4 +1,3 @@
-
 const { app, BrowserWindow, ipcMain, dialog } = require('electron')
 const path = require('path')
 const fs = require('fs')
@@ -9,12 +8,15 @@ bookmarks = ""
 
 
 
+
 class Render {
 
     static renderFrame(json) {
         /*
         renders recived requests and saves to resources/fractal_image.png
         */
+        console.log("RENDERFRAAME JSON")
+        console.log(json)
         fs.writeFileSync(path.join(__dirname, "resources", "request.json"), JSON.stringify(json))
         execSync(path.join(__dirname, "resources", "fractal-renderer"))
         return "done"
@@ -27,6 +29,62 @@ class Render {
 
         fs.copyFileSync(path.join(__dirname, "resources", "fractal_image.png"), fpath + ".png")
     }
+
+    /**
+     * Json: x1, x2, y1, y2, depth, zoom1, zoom2, zoom_mod, color_method, color_params, xsize, ysize, numtheads, frames
+     * 
+     * 
+     */
+    static renderVideo(e, id1, id2, frames, mod_amount) {
+
+        let point1 = bookmarks["saved"][id1]
+        let point2 = bookmarks["saved"][id2]
+
+        console.log(point1)
+        console.log(point2)
+
+    
+
+        let delta_x = point2["x"] - point1["x"]
+        let delta_y = point2["y"] - point1["y"]
+
+        let zoom_values_frame = []
+        for (let i = 0; i < frames; i++) {
+            zoom_values_frame.push(point1["zoom"] * mod_amount ** i)
+        }
+
+        let delta_zoom_frame = []
+        for (let i = 0; i < frames-1; i++) {
+            delta_zoom_frame.push(Math.abs(zoom_values_frame[i+1] - zoom_values_frame[i]))
+        }
+        delta_zoom_frame.push[0]
+
+        let total_zoom = Math.abs(point1["zoom"] - point2["zoom"])
+        let delta_x_frame = [0]
+        let delta_y_frame = [0]
+
+        for (let i = 0; i < frames-1; i++) {
+            delta_x_frame.push(delta_x * delta_zoom_frame[i] / total_zoom)
+            delta_y_frame.push(delta_y * delta_zoom_frame[i] / total_zoom)
+        }
+
+        let request_json = point1
+
+        for (let i = 0; i < frames; i++) {
+            request_json["x"] += delta_x_frame[i]
+            request_json["y"] += delta_y_frame[i]
+            request_json["zoom"] = zoom_values_frame[i]
+            Render.renderFrame(request_json)
+            fs.renameSync(path.join(__dirname, "resources", "fractal_image.png"), path.join(__dirname, "video_out", "fractal_image_" + i + ".png"))
+        }
+
+
+
+
+
+    }
+
+    
 }
 
 class Bookmark {
@@ -68,6 +126,7 @@ class Bookmark {
 function connectIpc() {
     ipcMain.handle('render:display', renderDisplay)
     ipcMain.handle("render:save", Render.saveImage)
+    ipcMain.handle("render:video", Render.renderVideo)
 
     ipcMain.handle('bookmark:get', Bookmark.get)
     ipcMain.handle('bookmark:add', Bookmark.add)

@@ -82,6 +82,16 @@ class Bookmark {
         }
         return value
     }
+
+    static getIdFromName(name) {
+        for (let id in bookmarks["saved"]) {
+            console.log(id)
+            if (bookmarks["saved"][id]["name"] == name) {
+                return id
+            }
+        }
+    }
+    
 }
 
 class EventHandle {
@@ -112,14 +122,32 @@ class EventHandle {
             }
         }
 
+        const videoFrameInput = document.getElementById("video-frames")
+        videoFrameInput.addEventListener('change', EventHandle.updateModif)  
+
+        const zoomModifInput = document.getElementById("video-zoom")
+        zoomModifInput.addEventListener('change', EventHandle.updateFrameAmount)
+
+        const video = document.getElementById("video")
+        for (let i in inputs.children) {
+            let input = inputs.children[i]
+
+            if (input.tagName == "INPUT") {
+                input.addEventListener('focus', EventHandle.formFocus)
+                input.addEventListener('blur', EventHandle.formBlur)
+            }
+        }
+
         const bookmarkInput = document.getElementById("bookmark-name")
         bookmarkInput.addEventListener('focus', EventHandle.formFocus)
         bookmarkInput.addEventListener('blur', EventHandle.formBlur)
 
         const saveButton = document.getElementById("save")
         saveButton.addEventListener('click', EventHandle.savePressed)
-    }
 
+        const renderVideoButton = document.getElementById("video-render")
+        renderVideoButton.addEventListener("click", EventHandle.renderVideoPressed)
+    }
 
     static keyDown(e) {
         if (processing) {
@@ -172,7 +200,6 @@ class EventHandle {
     }
 
     static addBookmarkPressed() {
-        //TODO restructure json
         let json = packSettings()
 
         let nameInput = document.getElementById("bookmark-name")
@@ -206,6 +233,60 @@ class EventHandle {
         focused_on_form = false
         console.log("form blurred")
     }
+
+    static updateModif() {
+        console.log("BIG PRINT STATMENT")
+        let point1_name = document.getElementById("video-name1").value
+        let point2_name = document.getElementById("video-name2").value
+        let frames = document.getElementById("video-frames").value
+
+        let point1_id = Bookmark.getIdFromName(point1_name)
+        let point2_id = Bookmark.getIdFromName(point2_name)
+
+        let point1 = bookmarks["saved"][point1_id]
+        let point2 = bookmarks["saved"][point2_id]
+
+        let zoom1 = point1["zoom"]
+        let zoom2 = point2["zoom"]
+
+        let new_modif = (zoom2/zoom1) ** (1/frames)
+    
+        document.getElementById("video-zoom").value = new_modif
+    }
+
+    static updateFrameAmount() {
+        console.log("HERE")
+        let point1_name = document.getElementById("video-name1").value
+        let point2_name = document.getElementById("video-name2").value
+        let zoom_modif = document.getElementById("video-zoom").value
+
+        let point1_id = Bookmark.getIdFromName(point1_name)
+        let point2_id = Bookmark.getIdFromName(point2_name)
+
+        let point1 = bookmarks["saved"][point1_id]
+        let point2 = bookmarks["saved"][point2_id]
+
+        let zoom1 = point1["zoom"]
+        let zoom2 = point2["zoom"]
+
+        console.log("zoom1:" + zoom1)
+        console.log("zoom2:" + zoom2)
+
+
+        let frames = Math.log(zoom2/zoom1) / Math.log(zoom_modif)
+
+        document.getElementById("video-frames").value = frames
+    }
+
+    static renderVideoPressed() {
+        let point1_name = document.getElementById("video-name1").value
+        let point2_name = document.getElementById("video-name2").value
+        let id1 = Bookmark.getIdFromName(point1_name)
+        let id2 = Bookmark.getIdFromName(point2_name)
+        let frames = document.getElementById("video-frames").value
+        let zoom_mod = document.getElementById("video-zoom").value
+        window.electronAPI.ipcRenderVideo(id1, id2, frames, zoom_mod)
+    }
 }
 
 function updateImageDisplay() {
@@ -216,7 +297,6 @@ function updateImageDisplay() {
 }
 
 function packSettings() {
-    //TODO pack into json format
     const x = Number(document.getElementById("x").value)
     const y = Number(document.getElementById("y").value)
     const width = Number(document.getElementById("width").value)
